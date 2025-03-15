@@ -1,0 +1,41 @@
+GET http://localhost:3000/posts
+
+###
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{   "title": "Java",  
+    "content": "Lorem ipsum...",  
+    "author": "John Hello",  
+    "tags": ["java", "react", "frontend"],  
+    "bookmarked": false
+}
+
+###
+PATCH http://localhost:3000/posts/3ac50bfc-9dbe-4723-8c32-32695fa22722
+Content-Type: application/json
+
+{   "id": "3ac50bfc-9dbe-4723-8c32-32695fa22722",
+    "title": "My Java book",  
+    "content": "Lorem ipsum content",  
+    "author": "Doe Hello"
+}
+
+###
+DELETE http://localhost:3000/posts/3ac50bfc-9dbe-4723-8c32-32695fa22722
+
+###
+GET http://localhost:3000/posts/b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820/comments
+
+###
+POST http://localhost:3000/posts/b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820/comments
+Content-Type: application/json
+
+{   
+    "postId": "b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820",  
+    "author": "Test imnida",  
+    "content": "Post yumuu daa!"  
+}
+
+###
+DELETE http://localhost:3000/posts/b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820/comments/a69f3c86-3e05-4e89-a171-de71b6909d37
