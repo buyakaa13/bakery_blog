@@ -1,3 +1,7 @@
 .grid-end {
   justify-self: end;
 }
+
+.content-text {
+  height: 80px;
+}

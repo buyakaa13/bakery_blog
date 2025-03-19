@@ -8,15 +8,20 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import PostComp from '../Post';
 import './styles.css';
-import {Post} from '../../Model/Post';
+import {Post} from '@/Model/Post';
+import {Comment as CommentModel} from '@/Model/Comment';
 import SpinnerComp from '@/MyComponents/Spinner';
 
 type SwiperProps = {
     data: Post[],
-    updateBookmark: (id: string, post: Post) => void
+    updateBookmark: (id: string, post: Partial<Post>) => void,
+    deletePost: (id: string) => void,
+    getComment: (id: string) => void,
+    comments: CommentModel[],
+    addComment: (id: string, comment: Partial<CommentModel>) => void
 }
 
-const Swiper: React.FC<SwiperProps> = ({data, updateBookmark})=>{
+const Swiper: React.FC<SwiperProps> = ({data, updateBookmark, deletePost, getComment, comments, addComment})=>{
     return(
         <Carousel className="m-3"  plugins={[
             Autoplay({
@@ -27,7 +32,7 @@ const Swiper: React.FC<SwiperProps> = ({data, updateBookmark})=>{
                 {data ? Object.entries(data).map(([key, item]) => (
                     <CarouselItem key={key} className="pl-1 md:basis-1/2 lg:basis-1/4">
                         <div className="p-1">
-                            <PostComp key={item.id+item.title} dataItem={item} updateBookmark={updateBookmark}/>
+                            <PostComp key={item.id+item.title} dataItem={item} updateBookmark={updateBookmark} deletePost={deletePost} getComment={getComment} comments={comments} addComment={addComment}/>
                         </div>
                     </CarouselItem>
                 )) : <SpinnerComp/>}

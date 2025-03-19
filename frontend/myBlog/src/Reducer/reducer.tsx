@@ -1,10 +1,11 @@
 import {Post} from '../Model/Post';
-import {Comment} from '../Model/Comment';
+import {Comment as CommentModel} from '../Model/Comment';
 
 export interface State{
     posts: Post[];
     filteredData: Post[];
     bookmarks: Post[];
+    comments: CommentModel[];
     sortedOrder: 'asc' | 'desc';
     loading: boolean;
     error: string;
@@ -20,6 +21,8 @@ type Action =
 | {type: 'SET_ERROR'; payload: string}
 | {type: 'ADD_POST'; payload: Post}
 | {type: 'DOWNLOAD'; payload: string}
+| {type: 'GET_COMMENTS'; payload: CommentModel[]}
+| {type: 'ADD_COMMENT'; payload: CommentModel}
 
 export function postReducer(state: State, action: Action): State{
     switch(action.type){
@@ -54,6 +57,16 @@ export function postReducer(state: State, action: Action): State{
                 posts: remainPosts,
                 filteredData: remainPosts
              }
+        case 'GET_COMMENTS':
+            return {
+                ...state,
+                comments: action.payload,
+            };
+        case 'ADD_COMMENT':
+            return{
+                ...state,
+                comments: [action.payload, ...state.comments],
+            };
         case 'SET_LOADING':
             return {
                 ...state,

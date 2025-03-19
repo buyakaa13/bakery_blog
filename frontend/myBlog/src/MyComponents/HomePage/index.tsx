@@ -2,14 +2,16 @@ import Filter from '../Filter/index.tsx';
 import AspectRatioComp from '../AspectRatio/index.tsx';
 import SwiperComp from '../Swiper/index.tsx';
 import Footer from '../Footer/index.tsx';
-import { Theme } from '@radix-ui/themes';
-import App from '../../App.tsx'
-import {State, postReducer} from '../../Reducer/reducer.tsx';
-import {useReducer, useEffect, useMemo, useState} from 'react';
-import {Post} from '@/Model/Post';
+import { Spinner, Theme } from '@radix-ui/themes';
+import { State, postReducer } from '../../Reducer/reducer.tsx';
+import { useReducer, useEffect, useMemo, useCallback } from 'react';
+import { Post } from '@/Model/Post';
+import { Comment as CommentModel } from '@/Model/Comment';
+import CardComp from '../Card/index.tsx';
 
 export const initialState: State = {
     posts: [],
+    comments: [],
     filteredData: [],
     bookmarks: [],
     sortedOrder: 'asc',
@@ -17,49 +19,51 @@ export const initialState: State = {
     error: ''
 };
 
-function HomePage(){
+function HomePage() {
     const [state, dispatch] = useReducer(postReducer, initialState);
-    const {posts, filteredData} = state;
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { posts, comments, filteredData, loading, error } = state;
     const apiUrl = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
-        async function getPosts() {
+        const getPosts = async () => {
             try {
-                const response = await fetch(apiUrl + '/contacts');
+                const response = await fetch(`${apiUrl}/posts`);
+                if (!response.ok) throw new Error('Failed to fetch posts');
                 const responseBody: Post[] = await response.json();
-                dispatch({type: 'GET_POSTS', payload: responseBody});
+                dispatch({ type: 'GET_POSTS', payload: responseBody });
             } catch (error) {
-                console.error('Error fetching contacts:', error);
+                console.error('Error fetching posts:', error);
+                dispatch({ type: 'SET_ERROR', payload: 'Error fetching posts' });
+            } finally {
+                dispatch({ type: 'SET_LOADING', payload: false });
             }
-        }
+        };
         getPosts();
-    }, []); 
+    }, []);
 
     const bookmarks = useMemo(() => posts.filter(post => post.bookmarked), [posts]);
 
-    const addPost = async (post: Post) => {
-        try{
-            post.bookmarked = false;
-            const response = await fetch(apiUrl + `/posts/`,{
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(post)
-            });
-            if (!response.ok) 
-                throw new Error(`Add error status: ${response.status} ${response.statusText}`);
-            const newPost = await response.json();
-            dispatch({type: 'ADD_POST', payload: newPost.data});
-        }
-        catch(error: any){
-            console.error('Error addPost: ', error);
-            // showErrorToast(error.message);
-        }
-    }
-
-    const updateBookmark = async (id: string, post: Post) => {
+    const addPost = useCallback(async (post: Partial<Post>) => {
         try {
-            const response = await fetch(apiUrl + `/contacts/${id}`, {
+            const response = await fetch(`${apiUrl}/posts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...post, bookmarked: false })
+            });
+            if (!response.ok) {
+                throw new Error(`Add error status: ${response.status} ${response.statusText}`);
+            }
+            const newPost = await response.json();
+            dispatch({ type: 'ADD_POST', payload: newPost.data });
+        } catch (error: unknown) {
+            console.error('Error addPost: ', error);
+            dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    }, []);
+
+    const updateBookmark = useCallback(async (id: string, post: Partial<Post>) => {
+        try {
+            const response = await fetch(apiUrl + `/posts/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(post),
@@ -70,68 +74,138 @@ function HomePage(){
             dispatch({type: 'UPDATE_BOOKMARK', payload: {id, bookmarked: updatedBookmark.bookmarked}})
         } catch (error) {
             console.error('Error updating bookmark:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Error updating bookmark' });
         }
-    };
+    }, []);
 
-    const deletePost = async(id: string) =>{
-        try{
-            const response = await fetch(apiUrl + `/posts/${id}`, {
+    const getComment = useCallback(async (id: string) => {
+        try {
+            const response = await fetch(`${apiUrl}/posts/${id}/comments`);
+            if (!response.ok) throw new Error('Failed to fetch comments');
+            const responseBody: CommentModel[] = await response.json();
+            dispatch({ type: 'GET_COMMENTS', payload: responseBody });
+        } catch (error) {
+            console.error('Error fetching comments:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Error fetching comments' });
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, []);
+
+    const addComment = useCallback(async (id:string, comment: Partial<CommentModel>) => {
+        try {
+            const response = await fetch(`${apiUrl}/posts/${id}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...comment })
+            });
+            if (!response.ok) {
+                throw new Error(`Add error status: ${response.status} ${response.statusText}`);
+            }
+            const newComment = await response.json();
+            dispatch({ type: 'ADD_COMMENT', payload: newComment.data });
+        } catch (error: unknown) {
+            console.error('Error addComment: ', error);
+            dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    }, []);
+
+    const deletePost = useCallback(async (id: string) => {
+        try {
+            const response = await fetch(`${apiUrl}/posts/${id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
             });
+            if (!response.ok) throw new Error("Failed to delete post");
             await response.json();
-            if (!response.ok) 
-                throw new Error("Failed to delete post");
-            dispatch({type: 'DELETE_POST', payload: id});
-        }
-        catch(error){
+            dispatch({ type: 'DELETE_POST', payload: id });
+        } catch (error) {
             console.error('Error delete post: ', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Error deleting post' });
         }
-    }
+    }, []);
 
-    const downloadPost = async() =>{
-        try{
-            const response = await fetch(apiUrl + `/contacts/export`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
+    const downloadPost = useCallback(async () => {
+        try {
+            const response = await fetch(`${apiUrl}/posts/export`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
             });
-            if (!response.ok) 
-                throw new Error('Failed to download file');
+    
+            if (!response.ok) {
+                throw new Error("Failed to download file");
+            }
+    
             const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const contentDisposition = response.headers.get("Content-Disposition");
+            const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
+            const fileName = fileNameMatch ? fileNameMatch[1] : "posts-export.zip";
+    
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
             link.href = url;
-            link.download = 'filename.zip'; 
+            link.download = fileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            dispatch({type: 'DOWNLOAD', payload: 'Success'});
-        }
-        catch(error){
-            console.error('Error download post: ', error);
-        }
-    }
-
-    const filterData = (query: string, filterType: 'includes' | 'startsWith' = 'includes') => {
-        const lowerCaseQuery = query.toLowerCase();
-        const filtered = posts.filter((item) =>
-            filterType === 'includes'
-                ? item.title.toLowerCase().includes(lowerCaseQuery)
-                : item.title.toLowerCase().startsWith(lowerCaseQuery)
-        );
-        dispatch({type: 'FILTER_DATA', payload: filtered})
-    };
+            window.URL.revokeObjectURL(url);
     
-    return(
-        <Theme appearance="dark" style={{height: "100vh", width: "100vw"}}>
-            <AspectRatioComp/>
-            <SwiperComp data={bookmarks} updateBookmark={updateBookmark}/>
-            <Filter/>
-            <App data={posts} updateBookmark={updateBookmark}/>
-            <Footer/>
+            dispatch({ type: "DOWNLOAD", payload: "Success" });
+        } catch (error) {
+            console.error("Error downloading post:", error);
+            dispatch({ type: 'SET_ERROR', payload: "Error downloading posts" });
+        }
+    }, []);
+
+    const filterData = useCallback((query: string, filterType: 'includes' | 'tags' | 'authors' | 'all' = 'includes') => {
+        const lowerCaseQuery = query.toLowerCase();
+        const filtered = posts.filter((item) => {
+            switch (filterType) {
+                case 'includes':
+                    return item.title.toLowerCase().includes(lowerCaseQuery);
+                case 'tags':
+                    return item.tags.includes(lowerCaseQuery);
+                case 'authors':
+                    return item.author.toLowerCase().includes(lowerCaseQuery);
+                case 'all':
+                    return item;
+                default:
+                    return true;
+            }
+        });
+        dispatch({ type: 'FILTER_DATA', payload: filtered });
+    }, [posts]);
+
+    if (loading) return <Spinner size="3" />;
+    if (error) return <div style={{ color: 'red', padding: '20px' }}>Error: {error}</div>;
+
+    return (
+        <Theme appearance="dark" style={{ height: "100vh", width: "100vw" }}>
+            <AspectRatioComp />
+            <SwiperComp 
+                data={bookmarks} 
+                updateBookmark={updateBookmark} 
+                deletePost={deletePost}
+                getComment={getComment}
+                comments={comments}
+                addComment={addComment}
+            />
+            <Filter 
+                addPost={addPost}
+                setSearch={filterData}
+                downloadPost={downloadPost}
+            />
+            <CardComp 
+                data={filteredData}
+                updateBookmark={updateBookmark} 
+                deletePost={deletePost}
+                getComment={getComment}
+                comments={comments}
+                addComment={addComment}
+            />
+            <Footer />
         </Theme>
-    )
+    );
 }
 
 export default HomePage;

@@ -1,7 +1,29 @@
 import { ChatBubbleIcon } from "@radix-ui/react-icons";
-import { Avatar, Box, Button, Flex, Popover, TextArea, Text } from "@radix-ui/themes";
+import { Avatar, Box, Button, Flex, Popover, TextArea, Text, Spinner } from "@radix-ui/themes";
+import { Comment as CommentModel } from '@/Model/Comment';
+import { useState } from 'react';
 
-function PopoverComp(){
+type PopoverProps = {
+    id: string,
+    comments: CommentModel[];
+    addComment: (id: string, comment: Partial<CommentModel>) => void
+}
+
+const PopoverComp: React.FC<PopoverProps> = ({id, comments, addComment}) => {
+    const [newComment, setNewComment] = useState('');
+
+    const handleAddComment = () => {
+        if (newComment.trim() === '') return;
+        const comment: Partial<CommentModel> = {
+            author: "John Doe", 
+            content: newComment,
+            postId: id,
+        };
+        
+        addComment(id, comment);
+        setNewComment('');
+    };
+
     return(
         <Popover.Root>
             <Popover.Trigger>
@@ -11,26 +33,21 @@ function PopoverComp(){
                 </Button>
             </Popover.Trigger>
             <Popover.Content width="360px">
-                <Flex gap="3" my="3">
-                    <Avatar
-                        size="1"
-                        fallback="B"
-                        radius="full"
-                    />
-                    <Box flexGrow="1">
-                        <Text style={{ fontSize: "14px" }}>Great post!</Text>
-                    </Box>
-                </Flex>
-                <Flex gap="3" my="3">
-                    <Avatar
-                        size="1"
-                        fallback="C"
-                        radius="full"
-                    />
-                    <Box flexGrow="1">
-                        <Text style={{ fontSize: "14px" }}>Great post!</Text>
-                    </Box>
-                </Flex>
+                { comments ?
+                    comments.map((com, index)=>(
+                        <Flex key={index} gap="3" my="3">
+                            <Avatar
+                                size="1"
+                                fallback={com.author.substring(0, 1)}
+                                radius="full"
+                            />
+                            <Box flexGrow="1">
+                                <Text style={{ fontSize: "14px" }}>{com.content}</Text>
+                            </Box>
+                        </Flex>
+                    )) : <Spinner/>
+                }
+                
                 <Flex gap="3">
                     <Avatar
                         size="1"
@@ -38,12 +55,17 @@ function PopoverComp(){
                         radius="full"
                     />
                     <Box flexGrow="1">
-                        <TextArea placeholder="Write a comment…" style={{ height: 80 }} />
+                        <TextArea 
+                            placeholder="Write a comment…" 
+                            style={{ height: 80 }}
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                        />
                         <Flex gap="3" mt="3" justify="end">
                             <Popover.Close>
                                 <Button size="1" color="red">Close</Button>
                             </Popover.Close>
-                            <Button size="1">Comment</Button>
+                            <Button size="1" onClick={handleAddComment}>Comment</Button>
                         </Flex>
                     </Box>
                 </Flex>
