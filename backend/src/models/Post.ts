@@ -6,7 +6,8 @@ export const postSchema = z.object({
     content: z.string().optional(),  
     author: z.string().optional(),  
     tags: z.array(z.string()).optional(),  
-    date: z.date().default(new Date()),  
+    // date: z.date().default(new Date()),  
+    date: z.string().datetime().optional(),  
     bookmarked: z.boolean().optional()  
 });
 

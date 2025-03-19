@@ -12,13 +12,17 @@ Content-Type: application/json
 }
 
 ###
-PATCH http://localhost:3000/posts/3ac50bfc-9dbe-4723-8c32-32695fa22722
+PATCH http://localhost:3000/posts/b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820
 Content-Type: application/json
 
-{   "id": "3ac50bfc-9dbe-4723-8c32-32695fa22722",
-    "title": "My Java book",  
-    "content": "Lorem ipsum content",  
-    "author": "Doe Hello"
+{
+    "author": "John Doe-123",
+    "bookmarked": true,
+    "content": "This family recipe has been passed down and perfected!  You can’t have just one once you bite into this crunchy, sweet almond bar.",
+    "date": "2025-03-15T17:57:23.711Z",
+    "id": "b1c3c356-4f7b-4fb5-9f84-e2f68a3c5820",
+    "tags": "['cookies', 'bars']",
+    "title": "Almond Bars"
 }
 
 ###

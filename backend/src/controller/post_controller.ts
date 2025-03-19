@@ -144,46 +144,54 @@ export const search_post: RequestHandler = (req, res, next) =>{
     }
 };
 
-export const export_post: RequestHandler = async (req, res, next)=>{
-    try{
-        await exportPosts();
-
-        const output = fs.createWriteStream(outputFilePath);
-        const archive = archiver('zip', { zlib: {level: 9}});
-
-        archive.on('error', (err)=>{ console.error('Error: ', err)});
-        archive.pipe(output);
-        archive.file(mdFilePath, {name: 'output.md'});
+export const export_post: RequestHandler = async (req, res, next) => {
+    let output: fs.WriteStream | null = null;
+    try {
+      await exportPosts();
+  
+      if (!fs.existsSync(mdFilePath)) {
+        throw new Error("Markdown file not found");
+      }
+  
+      output = fs.createWriteStream(outputFilePath);
+      const archive = archiver("zip", { zlib: { level: 9 } });
+  
+      archive.on("error", (err) => {
+        throw err;
+      });
+  
+      archive.pipe(output);
+      archive.file(mdFilePath, { name: "output.md" });
+  
+      await new Promise<void>((resolve, reject) => {
+        output!.on("close", resolve);
+        output!.on("error", reject);
         archive.finalize();
-
-        output.on('close', () => {
-            res.download(outputFilePath, 'output.zip', (err)=>{
-                if(err)
-                    console.error(`Error sending file: `, err);
-                else{
-                    if (!res.headersSent) {
-                        res.status(200).json({ message: 'File sent successfully' });
-                    }
-                }
-            });
-
-            fs.unlink(mdFilePath, (unlinkErr) => {
-                if(unlinkErr)
-                    console.error(`Error deleting md file: `, unlinkErr);
-                else 
-                    console.log(`md file deleted successfully`);
-            });
-        });
-        // res.status(200).json({message: 'File sent successfully'});
+      });
+  
+      const fileStream = fs.createReadStream(outputFilePath);
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", 'attachment; filename="posts-export.zip"');
+      fileStream.pipe(res);
+  
+      fileStream.on("end", () => {
+        // cleanupFiles();
+      });
+  
+    } catch (error: any) {
+      if (output) {
+        output.close();
+      }
+    //   cleanupFiles();
+  
+      const statusCode = error.status || 500;
+      res.status(statusCode).json({
+        status: "Error",
+        message: error.message || "Internal server error",
+      });
+      next(error);
     }
-    catch(error){
-        res.status(error.status || 500).json({
-            status: 'Error',
-            message: error.message || 'Invalid server error'
-        });
-        next(error);
-    }
-}
+  };
 
 export const no_route_found_handler: RequestHandler = (req, res, next) => {
     next(new Error(`No route found`));
