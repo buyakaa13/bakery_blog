@@ -1,0 +1,13 @@
+.carousel-btn {
+  border: 1px white solid;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: var(--violet-5);
+  justify-items: center;
+  margin: 3px;
+}
+
+.carousel-container {
+  justify-self: center;
+  width: auto;
+}
