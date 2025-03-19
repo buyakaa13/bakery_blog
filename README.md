@@ -3,7 +3,7 @@
 # CS472 Final Project March 2025: Blog Management Platform
 Build a blog management platform where users can create, and interact with blog posts. 
 
-# Video Link
+### Video Link
 https://mum0-my.sharepoint.com/:v:/r/personal/btsendsuren_miu_edu/Documents/Recordings/Meeting%20with%20Buyandelger%20Tsendsuren-20250319_172804-Meeting%20Recording.mp4?csf=1&web=1&e=6k0pUo
 
 ### Core Functionality
