@@ -4,7 +4,7 @@
 Build a blog management platform where users can create, and interact with blog posts. 
 
 ### Video Link
-https://mum0-my.sharepoint.com/:v:/r/personal/btsendsuren_miu_edu/Documents/Recordings/Meeting%20with%20Buyandelger%20Tsendsuren-20250319_195412-Meeting%20Recording.mp4?csf=1&web=1&e=QsYDPk
+https://mum0-my.sharepoint.com/:v:/r/personal/btsendsuren_miu_edu/Documents/Recordings/Meeting%20with%20Buyandelger%20Tsendsuren-20250319_200205-Meeting%20Recording.mp4?csf=1&web=1&e=syVvat
 
 ### Core Functionality
 * Create, edit, and delete blog posts. Store posts in `posts.json` with fields: `id` (UUID), `title`, `content`, `author`, `tags` (array), `date`, `bookmarked` (boolean).
