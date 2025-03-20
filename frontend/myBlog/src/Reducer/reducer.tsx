@@ -13,7 +13,7 @@ export interface State{
 
 type Action = 
 | {type: 'GET_POSTS'; payload: Post[]}
-| {type: 'UPDATE_BOOKMARK'; payload: {id: string; bookmarked: boolean}}
+| {type: 'UPDATE_BOOKMARK'; payload: {id: string; post: Post}}
 | {type: 'FILTER_DATA'; payload: Post[]}
 | {type: 'SORT_DATA'; payload: {sortedContacts: Post[]; sortedOrder: 'asc' | 'desc'}}
 | {type: 'DELETE_POST'; payload: string}
@@ -33,7 +33,7 @@ export function postReducer(state: State, action: Action): State{
                 filteredData: action.payload
             };
         case 'UPDATE_BOOKMARK':
-            const updatePosts = state.posts.map((post)=>post.id === action.payload.id ? {...post, bookmarked: action.payload.bookmarked} : post);
+            const updatePosts = state.posts.map((post)=>post.id === action.payload.id ? {...post, ...action.payload.post} : post);
             return {
                 ...state,
                 posts: updatePosts,

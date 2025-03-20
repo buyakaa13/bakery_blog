@@ -10,7 +10,7 @@ import { useState } from "react";
 type FilterProps = {
   addPost: (post: Partial<Post>) => void;
   setSearch: (query: string) => void;
-  downloadPost: () => Promise<void>;
+  downloadPost: () => void;
 };
 
 const Filter: React.FC<FilterProps> = ({ addPost, setSearch, downloadPost }) => {
@@ -19,7 +19,7 @@ const Filter: React.FC<FilterProps> = ({ addPost, setSearch, downloadPost }) => 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      await downloadPost();
+      downloadPost();
     } catch (error) {
       console.error("Download failed:", error);
     } finally {
@@ -30,15 +30,17 @@ const Filter: React.FC<FilterProps> = ({ addPost, setSearch, downloadPost }) => 
   return (
     <Grid columns="2" gap="3" width="auto" className="filter-grid">
       <AddDialog addPost={addPost} />
-      <Button
-        className="btn download"
-        onClick={handleDownload}
-        aria-label="Download posts"
-        disabled={isDownloading}
-      >
-        <DownloadIcon width="18px" height="18px" />
-        {isDownloading && <Spinner/>}
-      </Button>
+      <div className="download" onClick={handleDownload}>
+        <Button
+          className="btn"
+          aria-label="Download posts"
+          disabled={isDownloading} type="submit"
+        >
+          <DownloadIcon width="18px" height="18px" />
+          {isDownloading && <Spinner/>}
+        </Button>
+      </div>
+      
       <ToggleGroupComp setSearch={setSearch}/>
       <SearchTextField setSearch={setSearch} />
     </Grid>

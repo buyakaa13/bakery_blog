@@ -55,6 +55,7 @@ export function updatePost(id: string, post: postModel){
             id
         };
         fs.writeFileSync(postPathToFile, JSON.stringify(mainData));
+        return mainData[postIndex];
     }
     catch(error){
         throw error;

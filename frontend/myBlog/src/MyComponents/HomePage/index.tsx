@@ -71,7 +71,7 @@ function HomePage() {
             const updatedBookmark = await response.json();
             if (!response.ok) 
                 throw new Error("Failed to update bookmark");
-            dispatch({type: 'UPDATE_BOOKMARK', payload: {id, bookmarked: updatedBookmark.bookmarked}})
+            dispatch({type: 'UPDATE_BOOKMARK', payload: {id, post: updatedBookmark.data}})
         } catch (error) {
             console.error('Error updating bookmark:', error);
             dispatch({ type: 'SET_ERROR', payload: 'Error updating bookmark' });
@@ -125,37 +125,29 @@ function HomePage() {
         }
     }, []);
 
-    const downloadPost = useCallback(async () => {
-        try {
-            const response = await fetch(`${apiUrl}/posts/export`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
+    const downloadPost = async() =>{
+        try{
+            const response = await fetch(apiUrl + `/posts/export`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
             });
-    
-            if (!response.ok) {
-                throw new Error("Failed to download file");
-            }
-    
+            if (!response.ok) 
+                throw new Error('Failed to download file');
             const blob = await response.blob();
-            const contentDisposition = response.headers.get("Content-Disposition");
-            const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
-            const fileName = fileNameMatch ? fileNameMatch[1] : "posts-export.zip";
-    
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
             link.href = url;
-            link.download = fileName;
+            link.download = 'filename.zip'; 
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-    
-            dispatch({ type: "DOWNLOAD", payload: "Success" });
-        } catch (error) {
-            console.error("Error downloading post:", error);
-            dispatch({ type: 'SET_ERROR', payload: "Error downloading posts" });
+            URL.revokeObjectURL(url);
+            dispatch({type: 'DOWNLOAD', payload: 'Success'});
         }
-    }, []);
+        catch(error){
+            console.error('Error download post: ', error);
+        }
+    }
 
     const filterData = useCallback((query: string, filterType: 'includes' | 'tags' | 'authors' | 'all' = 'includes') => {
         const lowerCaseQuery = query.toLowerCase();

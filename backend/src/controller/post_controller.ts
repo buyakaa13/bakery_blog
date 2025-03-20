@@ -46,8 +46,8 @@ export const update_post: RequestHandler = (req, res, next)=>{
     try{
         const {id} = req.params;
         const validatedData: postModel = postSchema.parse(req.body);
-        updatePost(id, validatedData);
-        res.status(200).json({message: 'Post updated successfully', data: validatedData});
+        const data = updatePost(id, validatedData);
+        res.status(200).json({message: 'Post updated successfully', data: data});
     }
     catch(error){
         if(error instanceof z.ZodError){
